@@ -19,13 +19,13 @@ importers:
         version: 1.2.0
       openai:
         specifier: ^6.8.1
-        version: 6.48.0(zod@3.25.76)
+        version: 6.48.0(zod@4.4.3)
       simple-git:
         specifier: ^3.30.0
         version: 3.36.0
       zod:
-        specifier: ^3.23.8
-        version: 3.25.76
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       '@biomejs/biome':
         specifier: ^1.9.0
@@ -764,8 +764,8 @@ packages:
   undici-types@7.18.2:
     resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
 
-  zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+  zod@4.4.3:
+    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
 snapshots:
 
@@ -1212,9 +1212,9 @@ snapshots:
 
   object-assign@4.1.1: {}
 
-  openai@6.48.0(zod@3.25.76):
+  openai@6.48.0(zod@4.4.3):
     optionalDependencies:
-      zod: 3.25.76
+      zod: 4.4.3
 
   pathe@2.0.3: {}
 
@@ -1347,4 +1347,4 @@ snapshots:
 
   undici-types@7.18.2: {}
 
-  zod@3.25.76: {}
+  zod@4.4.3: {}
