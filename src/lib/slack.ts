@@ -3,18 +3,18 @@ import axios from "axios";
 import he from "he";
 
 export type PostReleaseArgs = {
-  webhookUrl: string;
-  productName: string;
-  tag: string;
-  url: string;
-  notes: string;
+	webhookUrl: string;
+	productName: string;
+	tag: string;
+	url: string;
+	notes: string;
 };
 
 const MAX_NOTES_LENGTH = 2800;
 
 function truncate(text: string): string {
-  if (text.length <= MAX_NOTES_LENGTH) return text;
-  return `${text.slice(0, MAX_NOTES_LENGTH)}\n\n...(truncated)`;
+	if (text.length <= MAX_NOTES_LENGTH) return text;
+	return `${text.slice(0, MAX_NOTES_LENGTH)}\n\n...(truncated)`;
 }
 
 /**
@@ -22,24 +22,24 @@ function truncate(text: string): string {
  * Converts the message body from Markdown to Slack Block Kit via @tryfabric/mack.
  */
 export async function postReleaseToSlack(args: PostReleaseArgs): Promise<void> {
-  const safeReleaseNotes = truncate(he.decode(args.notes ?? ""));
+	const safeReleaseNotes = truncate(he.decode(args.notes ?? ""));
 
-  const message = [
-    "@channel",
-    `*New Release for AIChat ${args.productName} is out!* 🎉`,
-    "",
-    `*Version:* ${args.tag}`,
-    "",
-    safeReleaseNotes,
-    "",
-    `[View Release in Github](${args.url})`,
-  ].join("\n");
+	const message = [
+		"@channel",
+		`*New Release for AIChat ${args.productName} is out!* 🎉`,
+		"",
+		`*Version:* ${args.tag}`,
+		"",
+		safeReleaseNotes,
+		"",
+		`[View Release in Github](${args.url})`,
+	].join("\n");
 
-  const blocks = await markdownToBlocks(message);
+	const blocks = await markdownToBlocks(message);
 
-  await axios.post(
-    args.webhookUrl,
-    { blocks },
-    { headers: { "Content-Type": "application/json" } },
-  );
+	await axios.post(
+		args.webhookUrl,
+		{ blocks },
+		{ headers: { "Content-Type": "application/json" } },
+	);
 }

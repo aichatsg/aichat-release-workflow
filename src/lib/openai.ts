@@ -2,8 +2,8 @@ import OpenAI from "openai";
 import type { Commit } from "./git.js";
 
 export type SummarizeOptions = {
-  apiKey: string;
-  model: string;
+	apiKey: string;
+	model: string;
 };
 
 const SYSTEM_PROMPT = `You are a release-notes writer for a SaaS product.
@@ -24,31 +24,31 @@ Rules:
 - If there are no meaningful changes, output the single line: "No user-facing changes."`;
 
 function formatCommits(commits: Commit[]): string {
-  return commits.map((c) => `- ${c.message}`).join("\n");
+	return commits.map((c) => `- ${c.message}`).join("\n");
 }
 
 /**
  * Summarizes the given commits into a Markdown changelog using OpenAI Chat Completions.
  */
 export async function summarizeCommits(
-  commits: Commit[],
-  options: SummarizeOptions,
+	commits: Commit[],
+	options: SummarizeOptions,
 ): Promise<string> {
-  if (commits.length === 0) return "";
+	if (commits.length === 0) return "";
 
-  const client = new OpenAI({ apiKey: options.apiKey });
+	const client = new OpenAI({ apiKey: options.apiKey });
 
-  const response = await client.chat.completions.create({
-    model: options.model,
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      {
-        role: "user",
-        content: `Here are the commits since the last release:\n\n${formatCommits(commits)}`,
-      },
-    ],
-  });
+	const response = await client.chat.completions.create({
+		model: options.model,
+		messages: [
+			{ role: "system", content: SYSTEM_PROMPT },
+			{
+				role: "user",
+				content: `Here are the commits since the last release:\n\n${formatCommits(commits)}`,
+			},
+		],
+	});
 
-  const content = response.choices[0]?.message?.content ?? "";
-  return content.trim();
+	const content = response.choices[0]?.message?.content ?? "";
+	return content.trim();
 }
