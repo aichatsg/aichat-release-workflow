@@ -108,7 +108,7 @@ jobs:
           cache-dependency-path: _tools/pnpm-lock.yaml
 
       - name: Install tool dependencies
-        run: pnpm --dir _tools install --frozen-lockfile
+        run: pnpm --dir _tools install --frozen-lockfile --ignore-workspace
 
       - name: Build tools
         run: pnpm --dir _tools build-only
@@ -159,7 +159,7 @@ jobs:
           cache-dependency-path: _tools/pnpm-lock.yaml
 
       - name: Install tool dependencies
-        run: pnpm --dir _tools install --frozen-lockfile
+        run: pnpm --dir _tools install --frozen-lockfile --ignore-workspace
 
       - name: Build tools
         run: pnpm --dir _tools build-only
