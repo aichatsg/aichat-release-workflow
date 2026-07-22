@@ -34,7 +34,7 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
-    uses: aichatsg/aichat-release-workflow/.github/workflows/release.yml@v1
+    uses: aichatsg/aichat-release-workflow/.github/workflows/release.yml@v0
     with:
       product_name: Backend
     secrets:
@@ -73,7 +73,7 @@ permissions:
 | `openai_model`   | string  | no       | `gpt-4`                            | OpenAI model used for summarisation.                                              |
 | `slack_enabled`  | boolean | no       | `true`                             | Skip Slack notification when false.                                               |
 | `tools_repo`     | string  | no       | `aichatsg/aichat-release-workflow` | Repo hosting these scripts.                                                       |
-| `tools_ref`      | string  | no       | `v1`                               | Ref of this repo to check out.                                                    |
+| `tools_ref`      | string  | no       | `v0`                               | Ref of this repo to check out.                                                    |
 
 ## Secrets
 
@@ -128,10 +128,11 @@ pnpm run:notify-slack
 3. Trigger a release on that branch.
 4. Once verified, merge into `main`. The [`self-release`](.github/workflows/self-release.yml)
    workflow will automatically tag a new `vX.Y.Z` from your conventional commits,
-   publish a GitHub Release, and force-move the `v1` major tag so callers pinned
-   to `@v1` pick up the change.
+   publish a GitHub Release, and move the current major-version alias (e.g. `v0`)
+   so callers pinned to that alias pick up the change.
 
-Callers should pin to `@v1` (moving) or a specific `@sha` for maximum safety.
+Callers should pin to the current major alias (`@v0` today) or a specific `@sha`
+for maximum safety.
 
 ---
 
@@ -153,7 +154,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   release:
-    uses: aichatsg/aichat-release-workflow/.github/workflows/release.yml@v1
+    uses: aichatsg/aichat-release-workflow/.github/workflows/release.yml@v0
     with:
       product_name: Backend
     secrets:
@@ -172,7 +173,7 @@ Make sure `OPENAI_API_KEY` and `SLACK_WEBHOOK_URL` exist as repo or org secrets.
 ├── .github/
 │   ├── workflows/
 │   │   ├── release.yml       # reusable workflow (on: workflow_call)
-│   │   ├── self-release.yml  # this repo's own semver + GH Release + move v1 tag
+│   │   ├── self-release.yml  # this repo's own semver + GH Release + move major-version alias
 │   │   └── ci.yml            # typecheck + lint + build on PR
 │   └── dependabot.yml
 ├── src/

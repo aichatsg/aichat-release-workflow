@@ -46,7 +46,7 @@ on:
         description: "Git ref (tag/branch/sha) of the tools repo to check out."
         type: string
         required: false
-        default: v1
+        default: v0
     secrets:
       OPENAI_API_KEY:
         description: "OpenAI API key used to summarise commits."
