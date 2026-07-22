@@ -1,0 +1,193 @@
+name: Release
+
+on:
+  workflow_call:
+    inputs:
+      product_name:
+        description: "Human name shown in the Slack message (e.g. Backend, Frontend, AI Backend)."
+        type: string
+        required: true
+      release_branch:
+        description: "Branch that produces releases."
+        type: string
+        required: false
+        default: main
+      default_bump:
+        description: "Fallback semver bump when no conventional-commit type matches."
+        type: string
+        required: false
+        default: patch
+      tag_prefix:
+        description: "Tag prefix."
+        type: string
+        required: false
+        default: v
+      node_version:
+        description: "Node.js version used to run the release tooling."
+        type: string
+        required: false
+        default: 24.17.0
+      openai_model:
+        description: "OpenAI model used for release-notes summarisation."
+        type: string
+        required: false
+        default: gpt-4
+      slack_enabled:
+        description: "Post the release announcement to Slack."
+        type: boolean
+        required: false
+        default: true
+      tools_repo:
+        description: "The org/repo hosting these release scripts (used to fetch scripts into _tools)."
+        type: string
+        required: false
+        default: aichatsg/aichat-release-workflow
+      tools_ref:
+        description: "Git ref (tag/branch/sha) of the tools repo to check out."
+        type: string
+        required: false
+        default: v1
+    secrets:
+      OPENAI_API_KEY:
+        description: "OpenAI API key used to summarise commits."
+        required: true
+      SLACK_WEBHOOK_URL:
+        description: "Slack Incoming Webhook URL. Required when slack_enabled is true."
+        required: false
+
+jobs:
+  tag:
+    name: Compute next tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      new_tag: ${{ steps.bump.outputs.new_tag }}
+      previous_tag: ${{ steps.bump.outputs.previous_tag }}
+    steps:
+      - name: Checkout caller repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump version and push tag
+        id: bump
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: ${{ inputs.default_bump }}
+          release_branches: ${{ inputs.release_branch }}
+          tag_prefix: ${{ inputs.tag_prefix }}
+
+  release-notes:
+    name: Generate release notes
+    needs: tag
+    if: needs.tag.outputs.new_tag != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout caller repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout release-workflow tools
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.tools_repo }}
+          ref: ${{ inputs.tools_ref }}
+          path: _tools
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: pnpm
+          cache-dependency-path: _tools/pnpm-lock.yaml
+
+      - name: Install tool dependencies
+        run: pnpm --dir _tools install --frozen-lockfile
+
+      - name: Build tools
+        run: pnpm --dir _tools build-only
+
+      - name: Summarize commits
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ inputs.openai_model }}
+          PREVIOUS_TAG: ${{ needs.tag.outputs.previous_tag }}
+          NEW_TAG: ${{ needs.tag.outputs.new_tag }}
+          RELEASE_NOTES_PATH: ${{ github.workspace }}/release-notes.md
+        run: pnpm --dir _tools run:summarize
+
+      - name: Upload release notes artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Release and notify Slack
+    needs: [tag, release-notes]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout caller repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout release-workflow tools
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.tools_repo }}
+          ref: ${{ inputs.tools_ref }}
+          path: _tools
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: pnpm
+          cache-dependency-path: _tools/pnpm-lock.yaml
+
+      - name: Install tool dependencies
+        run: pnpm --dir _tools install --frozen-lockfile
+
+      - name: Build tools
+        run: pnpm --dir _tools build-only
+
+      - name: Download release notes artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+          path: .
+
+      - name: Create GitHub Release
+        id: gh_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.tag.outputs.new_tag }}
+          name: Release ${{ needs.tag.outputs.new_tag }}
+          body_path: release-notes.md
+
+      - name: Notify Slack
+        if: inputs.slack_enabled
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          RELEASE_TAG: ${{ needs.tag.outputs.new_tag }}
+          RELEASE_URL: ${{ steps.gh_release.outputs.url }}
+          RELEASE_NOTES_PATH: ${{ github.workspace }}/release-notes.md
+          PRODUCT_NAME: ${{ inputs.product_name }}
+        run: pnpm --dir _tools run:notify-slack
