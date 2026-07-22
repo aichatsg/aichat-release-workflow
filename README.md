@@ -63,17 +63,17 @@ permissions:
 
 ## Inputs
 
-| Name             | Type    | Required | Default                             | Description                                                                       |
-| ---------------- | ------- | -------- | ----------------------------------- | --------------------------------------------------------------------------------- |
-| `product_name`   | string  | yes      | —                                   | Human name shown in the Slack message (e.g. `Backend`, `Frontend`, `AI Backend`). |
-| `release_branch` | string  | no       | `main`                              | Branch that produces releases.                                                    |
-| `default_bump`   | string  | no       | `patch`                             | Fallback bump when no conventional-commit type matches.                           |
-| `tag_prefix`     | string  | no       | `v`                                 | Tag prefix.                                                                       |
-| `node_version`   | string  | no       | `24.17.0`                           | Overridable but defaulted to the pinned version.                                  |
-| `openai_model`   | string  | no       | `gpt-4`                             | OpenAI model used for summarisation.                                              |
-| `slack_enabled`  | boolean | no       | `true`                              | Skip Slack notification when false.                                               |
-| `tools_repo`     | string  | no       | `aichatsg/aichat-release-workflow`  | Repo hosting these scripts.                                                       |
-| `tools_ref`      | string  | no       | `v1`                                | Ref of this repo to check out.                                                    |
+| Name             | Type    | Required | Default                            | Description                                                                       |
+| ---------------- | ------- | -------- | ---------------------------------- | --------------------------------------------------------------------------------- |
+| `product_name`   | string  | yes      | —                                  | Human name shown in the Slack message (e.g. `Backend`, `Frontend`, `AI Backend`). |
+| `release_branch` | string  | no       | `main`                             | Branch that produces releases.                                                    |
+| `default_bump`   | string  | no       | `patch`                            | Fallback bump when no conventional-commit type matches.                           |
+| `tag_prefix`     | string  | no       | `v`                                | Tag prefix.                                                                       |
+| `node_version`   | string  | no       | `24.17.0`                          | Overridable but defaulted to the pinned version.                                  |
+| `openai_model`   | string  | no       | `gpt-4`                            | OpenAI model used for summarisation.                                              |
+| `slack_enabled`  | boolean | no       | `true`                             | Skip Slack notification when false.                                               |
+| `tools_repo`     | string  | no       | `aichatsg/aichat-release-workflow` | Repo hosting these scripts.                                                       |
+| `tools_ref`      | string  | no       | `v1`                               | Ref of this repo to check out.                                                    |
 
 ## Secrets
 
@@ -126,11 +126,10 @@ pnpm run:notify-slack
    uses: aichatsg/aichat-release-workflow/.github/workflows/release.yml@feat/tweak-prompt
    ```
 3. Trigger a release on that branch.
-4. Once verified, merge here, tag `v1.x.y`, and update the moving `v1` tag:
-   ```bash
-   git tag -f v1 v1.x.y
-   git push origin v1 --force
-   ```
+4. Once verified, merge into `main`. The [`self-release`](.github/workflows/self-release.yml)
+   workflow will automatically tag a new `vX.Y.Z` from your conventional commits,
+   publish a GitHub Release, and force-move the `v1` major tag so callers pinned
+   to `@v1` pick up the change.
 
 Callers should pin to `@v1` (moving) or a specific `@sha` for maximum safety.
 
@@ -172,8 +171,9 @@ Make sure `OPENAI_API_KEY` and `SLACK_WEBHOOK_URL` exist as repo or org secrets.
 .
 ├── .github/
 │   ├── workflows/
-│   │   ├── release.yml     # reusable workflow (on: workflow_call)
-│   │   └── ci.yml          # typecheck + lint + build on PR
+│   │   ├── release.yml       # reusable workflow (on: workflow_call)
+│   │   ├── self-release.yml  # this repo's own semver + GH Release + move v1 tag
+│   │   └── ci.yml            # typecheck + lint + build on PR
 │   └── dependabot.yml
 ├── src/
 │   ├── lib/                # shared helpers
