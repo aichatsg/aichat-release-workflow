@@ -70,7 +70,7 @@ permissions:
 | `default_bump`   | string  | no       | `patch`                            | Fallback bump when no conventional-commit type matches.                           |
 | `tag_prefix`     | string  | no       | `v`                                | Tag prefix.                                                                       |
 | `node_version`   | string  | no       | `24.17.0`                          | Overridable but defaulted to the pinned version.                                  |
-| `openai_model`   | string  | no       | `gpt-4`                            | OpenAI model used for summarisation.                                              |
+| `openai_model`   | string  | no       | `gpt-6-luna`                       | OpenAI model used for summarisation.                                              |
 | `slack_enabled`  | boolean | no       | `true`                             | Skip Slack notification when false.                                               |
 | `tools_repo`     | string  | no       | `aichatsg/aichat-release-workflow` | Repo hosting these scripts.                                                       |
 | `tools_ref`      | string  | no       | `v0`                               | Ref of this repo to check out.                                                    |
@@ -102,7 +102,7 @@ Run a script against a real repo checkout:
 PREVIOUS_TAG=v1.2.3 \
 NEW_TAG=v1.2.4 \
 OPENAI_API_KEY=sk-... \
-OPENAI_MODEL=gpt-4 \
+OPENAI_MODEL=gpt-6-luna \
 RELEASE_NOTES_PATH=./release-notes.md \
 pnpm run:summarize
 ```

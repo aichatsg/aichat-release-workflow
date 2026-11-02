@@ -31,7 +31,7 @@ on:
         description: "OpenAI model used for release-notes summarisation."
         type: string
         required: false
-        default: gpt-4
+        default: gpt-6-luna
       slack_enabled:
         description: "Post the release announcement to Slack."
         type: boolean

@@ -9,7 +9,7 @@ const EnvSchema = z.object({
 	PREVIOUS_TAG: z.string().optional(),
 	NEW_TAG: z.string().min(1, "NEW_TAG is required"),
 	OPENAI_API_KEY: z.string().min(1, "OPENAI_API_KEY is required"),
-	OPENAI_MODEL: z.string().min(1).default("gpt-4"),
+	OPENAI_MODEL: z.string().min(1).default("gpt-6-luna"),
 	RELEASE_NOTES_PATH: z.string().min(1).default("./release-notes.md"),
 });
 
